@@ -1,0 +1,51 @@
+services:
+  redis-dev:
+    image: redis:7-alpine
+    ports:
+      - "${DEV_PORT}:6379"
+    container_name: redis-dev
+    command: ["redis-server", "--requirepass", "${DEV_PASS}"]
+    env_file:
+      - .env.dts
+    networks:
+      - redisnet
+
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "${TEST_PORT}:6379"
+    container_name: redis-test
+    command: ["redis-server", "--requirepass", "${TEST_PASS}"]
+    env_file:
+      - .env.dts
+    networks:
+      - redisnet
+
+  redis-staging:
+    image: redis:7-alpine
+    ports:
+      - "${STAGING_PORT}:6379"
+    container_name: redis-staging
+    command: ["redis-server", "--requirepass", "${STAGING_PASS}"]
+    env_file:
+      - .env.dts
+    networks:
+      - redisnet
+
+  nginx:
+    image: nginx:alpine
+    container_name: redis-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-dts.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - redis-dev
+      - redis-test
+      - redis-staging
+    networks:
+      - redisnet
+
+networks:
+  redisnet:
+    driver: bridge
